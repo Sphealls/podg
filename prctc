@@ -1,0 +1,1204 @@
+1.Напишите функцию Softmax.
+Алгоритм для написания функции Softmax:
+1)Импорт библиотек: Начнем с импорта необходимых библиотек, например, numpy, чтобы использовать функцию экспоненты.
+2)Определение функции Softmax: Создаем функцию с именем softmax, которая принимает вектор x в качестве аргумента.
+3)Обработка численной стабильности: Выполняем вычитание максимального значения из вектора x. Это предотвращает переполнение, улучшая численную стабильность.
+4)Вычисление экспоненты: Применяем функцию экспоненты к элементам вектора (x - np.max(x)).
+5)Вычисление суммы экспонент: Суммируем экспоненты для каждого столбца (axis=0).
+6)Вычисление Softmax: Делим каждый элемент вектора экспоненты на сумму экспонент.
+7)Возвращение результата: Возвращаем полученный вектор вероятностей.
+
+Реализация кода:
+import numpy as np
+
+def softmax(x):
+    """
+    Softmax функция для преобразования вектора в вероятностное распределение.
+
+    :param x: Входной вектор
+    :return: Вектор вероятностей
+    """
+    # Вычитание максимального значения для численной стабильности
+    exp_x = np.exp(x - np.max(x))
+    
+    # Вычисление Softmax
+    softmax_probs = exp_x / exp_x.sum(axis=0, keepdims=True)
+    
+    return softmax_probs
+
+# Пример использования
+input_vector = np.array([1.0, 2.0, 3.0])
+output_probs = softmax(input_vector)
+
+print("Input vector:", input_vector)
+print("Softmax output:", output_probs)
+
+Пояснение кода:
+*np.exp(x - np.max(x)): Вычитание максимального значения из вектора для численной стабильности (предотвращение переполнения).
+*exp_x / exp_x.sum(axis=0, keepdims=True): Вычисление Softmax, где каждый элемент вектора делится на сумму экспонент всех элементов.
+*output_probs: Вектор вероятностей после применения Softmax.
+
+
+2.Напишите функцию вычисления Cross Entropy Loss.
+Алгоритм для написания функции Cross Entropy Loss:
+1)Импорт библиотек: Начнем с импорта необходимых библиотек, например, numpy, чтобы использовать логарифм и функции суммирования.
+2)Определение функции Cross Entropy Loss: Создаем функцию с именем cross_entropy_loss, которая принимает два аргумента - вектор предсказанных вероятностей (y_pred) и вектор истинных меток (y_true).
+3)Обработка логарифма вероятностей: Вычисляем логарифм предсказанных вероятностей.
+4)Индексация по меткам: Индексируем логарифм вероятности с использованием истинных меток. Это делается с помощью numpy.
+5)Вычисление Cross Entropy Loss: Умножаем индексированные логарифмы на -1, чтобы получить значения Cross Entropy Loss для каждой метки, затем вычисляем среднее значение.
+6)Возвращение результата: Возвращаем полученное среднее значение Cross Entropy Loss.
+7)Пример использования: Применяем функцию к входным данным и выводим результат.
+
+Реализация кода:
+import numpy as np
+
+def cross_entropy_loss(y_pred, y_true):
+    # Вычисление логарифма вероятностей
+    log_probs = -np.log(y_pred)
+    
+    # Индексация по меткам
+    indexed_log_probs = log_probs[np.arange(len(y_true)), y_true]
+    
+    # Вычисление Cross Entropy Loss и среднего значения
+    loss = np.mean(indexed_log_probs)
+    
+    return loss
+
+# Пример использования
+y_true = np.array([0, 1, 1])  # Истинные метки
+y_pred = np.array([[0.6, 0.4], [0.4, 0.6], [0.7, 0.3]])  # Предсказанные вероятности
+
+loss_value = cross_entropy_loss(y_pred, y_true)
+
+print("True labels:", y_true)
+print("Predicted probabilities:", y_pred)
+print("Cross Entropy Loss:", loss_value)
+
+
+
+3. Напишите функцию вычисление градиента CrossEntropy(Softmax(z)).
+
+Алгоритм и код для вычисления градиента CrossEntropy(Softmax(z)):
+*Входные данные: z - вектор линейных оценок для каждого класса.
+*Примените функцию Softmax к вектору z, чтобы получить вероятности для каждого класса.
+*Вычислите кросс-энтропийную потерю между предсказанными вероятностями и истинными метками.
+*Выполните обратный проход, вычисляя градиент по отношению к входным оценкам z.
+
+Реализация кода:
+
+def softmax(Z):
+    """
+    Вычисляет Softmax для вектора Z.
+
+    Parameters:
+    - Z: numpy array, вектор линейных оценок (неактивированных logits).
+
+    Returns:
+    - softmax_probs: numpy array, вероятности после применения Softmax.
+    """
+    exp_scores = np.exp(Z - np.max(Z))  # Стабилизация для предотвращения переполнения
+    softmax_probs = exp_scores / np.sum(exp_scores, axis=-1, keepdims=True)
+    return softmax_probs
+
+def cross_entropy_loss_and_grad(W, X, y, reg):
+    """
+    Вычисляет кросс-энтропийную потерю и градиент по отношению к оценкам Z.
+
+    Parameters:
+    - W: numpy array, веса классификатора (матрица).
+    - X: numpy array, входные признаки.
+    - y: numpy array, истинные метки классов.
+    - reg: float, коэффициент регуляризации.
+
+    Returns:
+    - loss: float, кросс-энтропийная потеря.
+    - dL_dZ: numpy array, градиент кросс-энтропийной потери по оценкам Z.
+    """
+    # Forward pass
+    Z = X @ W
+    softmax_probs = softmax(Z)
+    
+    # Compute cross-entropy loss
+    N = X.shape[0]
+    correct_class_probs = softmax_probs[range(N), y]
+    loss = -np.sum(np.log(correct_class_probs)) / N
+    
+    # Backward pass
+    dL_dZ = softmax_probs.copy()
+    dL_dZ[range(N), y] -= 1
+    dL_dZ /= N
+    
+    # Regularization gradient
+    dL_dZ += reg * W
+
+    return loss, dL_dZ
+
+
+Объяснение кода:
+*Функция softmax применяет Softmax к вектору оценок Z.
+*Функция cross_entropy_loss_and_grad вычисляет кросс-энтропийную потерю и её градиент.
+*В обратном проходе (dL_dZ), градиент по каждой оценке z вычисляется с использованием Softmax.
+*Добавляется регуляризация для предотвращения переобучения.
+*Весь код написан так, чтобы соответствовать задаче классификации с Softmax-функцией активации и кросс-энтропийной потерей.
+
+4. Напишите функцию вычисления локального dL/dW для матричного умножения. На вход функция принимает градиент dL/dZ.
+Алгоритм и код для вычисления локального dL/dW для матричного умножения:
+*Входные данные: dL_dZ - градиент кросс-энтропийной потери по отношению к оценкам Z.
+*Вычислите градиент кросс-энтропийной потери по отношению к весам W с учетом матричного умножения.
+
+Реализация кода:
+def softmax_loss_and_grad(W, X, y, reg):
+    """
+    Вычисляет кросс-энтропийную потерю и градиент по отношению к оценкам Z.
+
+    Parameters:
+    - W: numpy array, веса классификатора (матрица).
+    - X: numpy array, входные признаки.
+    - y: numpy array, истинные метки классов.
+    - reg: float, коэффициент регуляризации.
+
+    Returns:
+    - loss: float, кросс-энтропийная потеря.
+    - dL_dZ: numpy array, градиент кросс-энтропийной потери по оценкам Z.
+    """
+    # Forward pass
+    Z = X @ W
+    softmax_probs = softmax(Z)
+    
+    # Compute cross-entropy loss
+    N = X.shape[0]
+    correct_class_probs = softmax_probs[range(N), y]
+    loss = -np.sum(np.log(correct_class_probs)) / N
+    
+    # Backward pass
+    dL_dZ = softmax_probs.copy()
+    dL_dZ[range(N), y] -= 1
+    dL_dZ /= N
+    
+    # Regularization gradient
+    dL_dZ += reg * W
+
+    return loss, dL_dZ
+
+def matrix_mul_grad(X, dL_dZ):
+    """
+    Вычисляет локальный градиент dL/dW для матричного умножения.
+
+    Parameters:
+    - X: numpy array, входные признаки.
+    - dL_dZ: numpy array, градиент кросс-энтропийной потери по оценкам Z.
+
+    Returns:
+    - dL_dW: numpy array, локальный градиент dL/dW для матричного умножения.
+    """
+    # Локальный градиент для матричного умножения
+    dL_dW = X.T @ dL_dZ
+
+    return dL_dW
+
+Объяснение кода:
+
+*Функция matrix_mul_grad принимает входные признаки X и градиент кросс-энтропийной потери по оценкам Z.
+*Локальный градиент dL/dW для матричного умножения вычисляется как произведение транспонированной матрицы входных признаков X на градиент dL/dZ.
+*Весь код написан так, чтобы соответствовать задаче классификации с Softmax-функцией активации и кросс-энтропийной потерей.
+
+5.Напишите функцию вычисления градиента и loss для L2 регуляризации.
+Алгоритм и код для вычисления градиента и потери для L2 регуляризации:
+*Входные данные: W - веса, reg_strength - коэффициент регуляризации.
+*Вычислите L2-регуляризованную потерю и градиент.
+
+Код с комментариями:
+def l2_regularization(W, reg_strength):
+    """
+    Вычисляет L2-регуляризованную потерю и градиент.
+
+    Parameters:
+    - W: numpy array, веса.
+    - reg_strength: float, коэффициент регуляризации.
+
+    Returns:
+    - reg_loss: float, L2-регуляризованная потеря.
+    - reg_grad: numpy array, градиент L2-регуляризации.
+    """
+    # L2-регуляризованная потеря
+    reg_loss = 0.5 * reg_strength * np.sum(W**2)
+
+    # Градиент L2-регуляризации
+    reg_grad = reg_strength * W
+
+    return reg_loss, reg_grad
+
+def softmax_loss_and_grad(W, X, y, reg):
+    """
+    Вычисляет кросс-энтропийную потерю и градиент с учетом L2-регуляризации.
+
+    Parameters:
+    - W: numpy array, веса классификатора (матрица).
+    - X: numpy array, входные признаки.
+    - y: numpy array, истинные метки классов.
+    - reg: float, коэффициент регуляризации.
+
+    Returns:
+    - loss: float, кросс-энтропийная потеря с L2-регуляризацией.
+    - dL_dZ: numpy array, градиент кросс-энтропийной потери по оценкам Z.
+    """
+    # Forward pass
+    scores = X @ W
+    exp_scores = np.exp(scores)
+    probs = exp_scores / np.sum(exp_scores, axis=1, keepdims=True)
+    N = X.shape[0]
+
+    # Cross-entropy loss
+    correct_probs = probs[np.arange(N), y]
+    loss = -np.sum(np.log(correct_probs)) / N
+
+    # Backward pass
+    dL_dZ = probs.copy()
+    dL_dZ[np.arange(N), y] -= 1
+    dL_dZ /= N
+
+    # Regularization loss and gradient
+    reg_loss, reg_grad = l2_regularization(W, reg)
+    loss += reg_loss
+    dL_dZ += reg_grad
+
+    return loss, dL_dZ
+
+
+Объяснение кода:
+*Функция l2_regularization вычисляет L2-регуляризованную потерю и градиент для весов W.
+*В функции softmax_loss_and_grad добавляется L2-регуляризация к кросс-энтропийной потере и ее градиенту.
+*В обоих случаях регуляризация применяется к каждому элементу вектора весов W.
+
+6.Напишите функцию, которая берет случайную выборку из матрицы X размером 32 элемента.
+Алгоритм и код для получения случайной выборки из матрицы X:
+*Входные данные: X - матрица, batch_size - размер выборки.
+*Сгенерировать массив случайных индексов размером batch_size.
+*Используя сгенерированные индексы, создать подматрицу из X.
+
+Код с комментариями:
+def get_random_batch(X, batch_size):
+    """
+    Возвращает случайную подвыборку из матрицы X.
+
+    Parameters:
+    - X: numpy array, исходная матрица.
+    - batch_size: int, размер подвыборки.
+
+    Returns:
+    - X_batch: numpy array, случайная подвыборка из матрицы X.
+    """
+    # Генерация случайных индексов
+    idxs = np.random.choice(X.shape[0], size=batch_size, replace=False)
+    
+    # Получение подматрицы из X
+    X_batch = X[idxs, :]
+
+    return X_batch
+
+Объяснение кода:
+*Функция get_random_batch принимает матрицу X и размер подвыборки batch_size.
+*Генерируются случайные индексы из диапазона от 0 до X.shape[0] без повторений.
+*Подматрица X_batch создается, используя сгенерированные индексы.
+
+7.Напишите общий пайплайн обучения двухслойной сети.
+Алгоритм и код для обучения двухслойной сети:
+*Входные данные: x_train, y_train - обучающая выборка, n_iters - количество итераций градиентного спуска.
+*Создать экземпляр двухслойной сети (TwoLayerNet).
+*Задать гиперпараметры: learning_rate, reg, num_iters, batch_size.
+*Инициализировать оптимизатор (например, Momentum).
+*Для каждой итерации градиентного спуска:
+  *Получить случайный минибатч из обучающей выборки.
+  *Выполнить прямой проход (forward pass) через сеть.
+  *Вычислить функцию потерь и градиенты.
+  *Обновить веса сети с использованием оптимизатора.
+*После завершения обучения оценить точность на обучающей и тестовой выборке.
+
+Код с комментариями:
+def train_two_layer_net(x_train, y_train, n_iters=10000, learning_rate=1e-3, reg=1e-1, batch_size=64, verbose=True):
+    """
+    Общий пайплайн обучения двухслойной сети.
+
+    Parameters:
+    - x_train: numpy array, обучающая выборка.
+    - y_train: numpy array, метки классов для обучающей выборки.
+    - n_iters: int, количество итераций градиентного спуска.
+    - learning_rate: float, скорость обучения.
+    - reg: float, коэффициент регуляризации.
+    - batch_size: int, размер минибатча.
+    - verbose: bool, вывод прогресса обучения.
+
+    Returns:
+    - cls: экземпляр обученной двухслойной сети.
+    - loss_history: список значений функции потерь на каждой итерации.
+    """
+    # Создание экземпляра двухслойной сети
+    cls = TwoLayerNet()
+
+    # Задание гиперпараметров
+    cls.learning_rate = learning_rate
+    cls.reg = reg
+
+    # Инициализация оптимизатора (например, Momentum)
+    cls.optimizer = Momentum()
+
+    # Подготовка данных (например, предобработка)
+    (x_train, y_train), _ = get_preprocessed_data()
+
+    # Итерации градиентного спуска
+    loss_history = []
+    for it in range(n_iters):
+        # Получение случайного минибатча
+        idxs = np.random.choice(len(x_train), batch_size)
+        x_batch, y_batch = x_train[idxs], y_train[idxs]
+
+        # Прямой проход (forward pass) через сеть
+        z = cls.forward(x_batch)
+
+        # Вычисление функции потерь и градиентов
+        cls.compute_loss_and_gradient(z, y_batch)
+
+        # Обратный проход (backward pass)
+        cls.backward()
+
+        # Обновление весов с использованием оптимизатора
+        for name, param in cls.params().items():
+            cls.optimizer.step(param.value, param.grad, learning_rate)
+
+        loss_history.append(cls.loss)
+
+        if it % 100 == 0 and verbose:
+            print(f'iteration {it} / {n_iters}: loss {cls.loss:.3f} ')
+
+    return cls, loss_history
+
+
+Объяснение кода:
+*Функция train_two_layer_net реализует общий пайплайн обучения двухслойной сети.
+*Создается экземпляр TwoLayerNet и задаются гиперпараметры.
+*Инициализируется оптимизатор (Momentum).
+*Проводится обучение с использованием стохастического градиентного спуска и выводом прогресса.
+*Возвращаются обученная сеть и история значений функции потерь.
+
+8.Напишите класс ReLU.
+Алгоритм и код для класса ReLU:
+*Входные данные: X - входной массив, результат прямого прохода (выход) предыдущего слоя.
+*Проход по каждому элементу массива X:
+  *Если элемент положительный, оставить его без изменений.
+  *Если элемент отрицательный, заменить его нулем.
+*Результат работы ReLU - новый массив с примененными функцией ReLU значениями.
+
+Код с комментариями:
+class ReLULayer:
+    def __init__(self):
+        self.mask = None
+
+    def forward(self, X: np.array) -> np.array:
+        """
+        Реализация прямого прохода (forward pass) через слой ReLU.
+
+        Parameters:
+        - X: numpy array, входной массив.
+
+        Returns:
+        - result: numpy array, результат работы ReLU.
+        """
+        # Запоминаем маску тех элементов, которые положительные
+        self.mask = (X > 0)
+        # Применяем ReLU - оставляем положительные значения, а отрицательные заменяем на 0
+        result = X * self.mask
+        return result
+
+    def backward(self, d_out: np.array) -> np.array:
+        """
+        Реализация обратного прохода (backward pass) через слой ReLU.
+
+        Parameters:
+        - d_out: numpy array, градиент функции потерь по выходу слоя.
+
+        Returns:
+        - d_result: numpy array, градиент функции потерь по входу слоя.
+        """
+        # Производная ReLU - 1 для положительных элементов, 0 для отрицательных
+        d_result = d_out * self.mask
+        return d_result
+
+    def params(self) -> dict:
+        """
+        Возвращает параметры слоя ReLU (в данном случае слой ReLU не имеет параметров).
+
+        Returns:
+        - params: словарь, пустой для слоя ReLU.
+        """
+        return {}
+
+Объяснение кода:
+*ReLU (Rectified Linear Unit) - это нелинейная функция активации, которая возвращает 0 для всех отрицательных входов и оставляет положительные значения без изменений.
+*ReLULayer - класс, реализующий слой ReLU. Имеет методы forward и backward для прямого и обратного прохода соответственно, а также метод params, который возвращает пустой словарь, так как слой ReLU не имеет обучаемых параметров.
+*Прямой проход (forward): Проходим по каждому элементу входного массива, сохраняем маску положительных значений, применяем функцию ReLU.
+*Обратный проход (backward): Умножаем градиент функции потерь по выходу слоя на маску, получая градиент по входу. Это осуществляет обратное распространение ошибки через слой ReLU.
+
+9.Напишите класс DenseLayer.
+Алгоритм и код для класса DenseLayer:
+*Входные данные: n_input - количество входных нейронов, n_output - количество выходных нейронов.
+*Инициализация параметров слоя: матрицы весов W и вектора смещений B.
+*Проход вперед (forward): умножение входных данных на матрицу весов, добавление вектора смещений, передача результата через нелинейную функцию активации (в данном случае ReLU).
+*Обратный проход (backward): вычисление градиента функции потерь по входам слоя, обновление градиентов по параметрам (весам и смещениям).
+*Параметры слоя (params): возвращает словарь с параметрами слоя (веса W и смещения B).
+
+Код с комментариями:
+class DenseLayer:
+    def __init__(self, n_input, n_output):
+        """
+        Инициализация слоя Dense.
+
+        Parameters:
+        - n_input: int, количество входных нейронов.
+        - n_output: int, количество выходных нейронов.
+        """
+        # Инициализация параметров слоя - весов и смещений
+        self.W = Param(0.001 * np.random.randn(n_input, n_output))
+        self.B = Param(0.001 * np.random.randn(1, n_output))
+        self.X = None
+
+    def forward(self, X):
+        """
+        Прямой проход через слой Dense.
+
+        Parameters:
+        - X: numpy array, входной массив.
+
+        Returns:
+        - result: numpy array, результат работы слоя.
+        """
+        self.X = X  # Сохраняем входные данные для обратного прохода
+        # Вычисляем результат слоя - умножение на веса, добавление смещений и применение ReLU
+        result = np.maximum(0, X.dot(self.W.value) + self.B.value)
+        return result
+
+    def backward(self, d_out):
+        """
+        Обратный проход через слой Dense.
+
+        Parameters:
+        - d_out: numpy array, градиент функции потерь по выходу слоя.
+
+        Returns:
+        - d_result: numpy array, градиент функции потерь по входу слоя.
+        """
+        # Градиенты по параметрам слоя
+        dW = self.X.T.dot(d_out)
+        dB = np.sum(d_out, axis=0, keepdims=True)
+        # Градиент по входам слоя
+        d_result = d_out.dot(self.W.value.T)
+        # Обновление градиентов в параметрах слоя
+        self.W.grad += dW
+        self.B.grad += dB
+        return d_result
+
+    def params(self):
+        """
+        Возвращает параметры слоя Dense.
+
+        Returns:
+        - params: словарь, содержащий параметры слоя (веса W и смещения B).
+        """
+        return {'W': self.W, 'B': self.B}
+
+
+Объяснение кода:
+*DenseLayer - класс, представляющий полносвязный слой (Dense Layer) в нейронной сети.
+*В конструкторе инициализируются параметры слоя: матрица весов W и вектор смещений B. Инициализация происходит с использованием небольшого случайного шума.
+*Метод forward выполняет прямой проход через слой: умножение входных данных на веса, добавление смещений и применение функции активации (ReLU).
+*Метод backward реализует обратный проход: вычисление градиента функции потерь по входам слоя, а также обновление градиентов весов и смещений.
+*Метод params возвращает словарь с параметрами слоя (веса и смещения), который используется при оптимизации.
+
+10.Напишите класс DropOut.
+Алгоритм и код для класса DropoutLayer:
+*Входные данные: p - вероятность сохранения нейрона при дропауте.
+*Во время прямого прохода (forward): для каждого нейрона генерируется случайное число из равномерного распределения, и если оно больше p, то нейрон "выключается" (его выход умножается на ноль).
+*Обратный проход (backward) просто умножает градиент на маску дропаута.
+*Параметры слоя (params): возвращает пустой словарь, так как Dropout не имеет обучаемых параметров.
+
+Код с комментариями:
+class DropoutLayer(Layer):
+    def __init__(self, p=0.5):
+        """
+        Инициализация слоя Dropout.
+
+        Parameters:
+        - p: float, вероятность выключения нейрона (дропаут).
+        """
+        self.p = p
+        self.mask = None  # Маска дропаута (будет использоваться при прямом и обратном проходе)
+        self.scale = None  # Масштабирование выхода слоя при прямом проходе
+
+    def forward(self, x: np.ndarray, train: bool = True) -> np.ndarray:
+        """
+        Прямой проход через слой Dropout.
+
+        Parameters:
+        - x: numpy array, входной массив.
+        - train: bool, флаг обучения (если False, то дропаут не применяется).
+
+        Returns:
+        - result: numpy array, результат работы слоя.
+        """
+        if train:
+            # Генерация маски дропаута
+            self.mask = np.random.random(size=x.shape) > self.p
+            self.scale = 1 / (1 - self.p)
+            # Применение маски и масштабирование выхода
+            result = x * self.mask * self.scale
+        else:
+            # В режиме тестирования (без дропаута)
+            result = x
+        return result
+
+    def backward(self, grad_input: np.ndarray) -> np.ndarray:
+        """
+        Обратный проход через слой Dropout.
+
+        Parameters:
+        - grad_input: numpy array, градиент функции потерь по выходу слоя.
+
+        Returns:
+        - grad_output: numpy array, градиент функции потерь по входу слоя.
+        """
+        # Умножение градиента на маску дропаута и масштабирование
+        grad_output = grad_input * self.mask * self.scale
+        return grad_output
+
+    def params(self) -> dict:
+        """
+        Возвращает пустой словарь, так как Dropout не имеет обучаемых параметров.
+
+        Returns:
+        - params: dict, пустой словарь.
+        """
+        return {}
+
+Объяснение кода:
+*DropoutLayer - класс, представляющий слой Dropout в нейронной сети.
+*В конструкторе инициализируются вероятность p, маска дропаута и масштабирование выхода.
+*Метод forward выполняет прямой проход через слой Dropout. В режиме обучения генерируется маска дропаута, которая умножается на вход и масштабируется. В режиме тестирования дропаут не применяется.
+*Метод backward реализует обратный проход, умножая градиент на маску дропаута и масштабируя.
+*Метод params возвращает пустой словарь, так как Dropout не имеет обучаемых параметров.
+
+11.Напишите класс OptimizerSGD.
+Алгоритм и код для класса OptimizerSGD:
+*OptimizerSGD - класс, представляющий оптимизатор стохастического градиентного спуска.
+*В каждом шаге обновляет веса по формуле: w -= learning_rate * gradient.
+
+Код с комментариями:
+class OptimizerSGD(Optimizer):
+    def step(self, w, d_w, learning_rate):
+        """
+        Один шаг оптимизатора стохастического градиентного спуска.
+
+        Parameters:
+        - w: numpy array, текущие веса.
+        - d_w: numpy array, градиент функции потерь по весам.
+        - learning_rate: float, коэффициент скорости обучения.
+
+        Returns:
+        - None: Обновляет веса входного массива.
+        """
+        # Обновление весов по формуле градиентного спуска
+        w -= learning_rate * d_w
+
+
+Объяснение кода:
+*OptimizerSGD - класс, наследующийся от абстрактного класса Optimizer.
+*Метод step выполняет один шаг оптимизации стохастического градиентного спуска.
+*Принимает текущие веса w, градиент d_w и коэффициент скорости обучения learning_rate.
+*Обновляет веса w в соответствии с формулой градиентного спуска: w -= learning_rate * d_w.
+
+
+12.Напишите класс OptimizerMomentum.
+Алгоритм и код для класса OptimizerMomentum:
+*OptimizerMomentum - класс, представляющий оптимизатор метода Momentum.
+*Вводит переменную velocity, которая представляет собой скользящее среднее градиента.
+*В каждом шаге обновляет веса по формуле: velocity = rho * velocity + d_w, w -= learning_rate * velocity.
+
+Код с комментариями:
+class OptimizerMomentum(Optimizer):
+    def __init__(self, rho=0.9):
+        """
+        Инициализация оптимизатора метода Momentum.
+
+        Parameters:
+        - rho: float, коэффициент затухания для скользящего среднего градиента.
+        """
+        self.rho = rho
+        self.velocity = None
+
+    def step(self, w, d_w, learning_rate):
+        """
+        Один шаг оптимизатора метода Momentum.
+
+        Parameters:
+        - w: numpy array, текущие веса.
+        - d_w: numpy array, градиент функции потерь по весам.
+        - learning_rate: float, коэффициент скорости обучения.
+
+        Returns:
+        - None: Обновляет веса входного массива.
+        """
+        # Инициализация переменной velocity при первом вызове
+        if self.velocity is None:
+            self.velocity = np.zeros_like(d_w)
+
+        # Обновление скользящего среднего градиента
+        new_velocity = self.rho * self.velocity + d_w
+
+        # Обновление весов по формуле Momentum
+        w -= learning_rate * new_velocity
+
+        # Обновление значения переменной velocity
+        self.velocity = new_velocity
+
+
+Объяснение кода:
+*OptimizerMomentum - класс, наследующийся от абстрактного класса Optimizer.
+*Переменная velocity используется для хранения скользящего среднего градиента.
+*Метод step выполняет один шаг оптимизации метода Momentum.
+*Обновляет velocity и веса w в соответствии с формулой метода Momentum.
+
+13.Напишите реализацию метода forward для многослойной нейросети.
+Реализация кода:
+import tensorflow as tf
+
+class DenseLayer:
+    def __init__(self, units, activation=None):
+        self.units = units
+        self.activation = activation
+        self.weights = None
+        self.biases = None
+
+    def initialize_weights(self, input_size):
+        """
+        Инициализация весов слоя.
+
+        Аргументы:
+        - input_size: Размер входных данных.
+
+        Возвращает:
+        - None
+        """
+        # Используем нормальное распределение для инициализации весов
+        stddev = 1. / tf.sqrt(tf.cast(input_size, dtype=tf.float32))
+        self.weights = tf.Variable(tf.random.normal(shape=(input_size, self.units), stddev=stddev),
+                                   name='weights', trainable=True)
+        self.biases = tf.Variable(tf.zeros(shape=(self.units,), dtype=tf.float32), name='biases', trainable=True)
+
+    def forward(self, x):
+        """
+        Прямой проход через слой.
+
+        Аргументы:
+        - x: Входные данные.
+
+        Возвращает:
+        - output: Результат прямого прохода.
+        """
+        # Если веса не инициализированы, инициализируем их
+        if self.weights is None:
+            input_size = x.shape[-1]
+            self.initialize_weights(input_size)
+
+        # Линейная часть: y = x * W + b
+        linear_output = tf.matmul(x, self.weights) + self.biases
+
+        # Применение функции активации, если она задана
+        if self.activation is not None:
+            output = self.activation(linear_output)
+        else:
+            output = linear_output
+
+        return output
+
+Пояснение кода:
+*DenseLayer: Класс, представляющий полносвязный слой нейросети.
+*initialize_weights: Метод для инициализации весов слоя. Используется нормальное распределение для их начальной установки.
+*forward: Метод для выполнения прямого прохода через слой. Производится линейное преобразование (y = x * W + b), а затем применяется функция активации, если она задана.
+
+Пример использования:
+# Создание объекта слоя
+dense_layer = DenseLayer(units=128, activation=tf.nn.relu)
+
+# Пример входных данных
+input_data = tf.random.normal((32, 784))  # Пример для батча размером 32
+
+# Прямой проход через слой
+output_data = dense_layer.forward(input_data)
+
+# Вывод результата
+print("Результат прямого прохода через слой:", output_data)
+
+Алгоритм для метода forward в многослойной нейросети:
+1) Инициализация слоя:
+*Создать класс DenseLayer с атрибутами units (количество нейронов) и activation (функция активации).
+*Создать метод initialize_weights, который инициализирует веса слоя. Использовать нормальное распределение для начальной установки весов.
+*Создать метод forward, который выполняет прямой проход через слой. Если веса не инициализированы, вызвать initialize_weights.
+2)Прямой проход:
+*В методе forward вычислить линейную часть преобразования: linear_output = x * W + b, где x - входные данные, W - веса, b - смещения (biases).
+*Если задана функция активации (activation), применить ее к linear_output: output = activation(linear_output).
+*Если функция активации не задана, вернуть линейный вывод: output = linear_output.
+3)Пример использования:
+*Создать объект DenseLayer с желаемыми параметрами (например, units=128 и activation=tf.nn.relu).
+*Передать входные данные (input_data) через метод forward слоя.
+*Полученный вывод (output_data) используется для дальнейших вычислений в нейросети.
+
+Примечание:
+*Приведенный алгоритм охватывает только один слой. В многослойной нейросети для каждого слоя нужно повторить шаги 1-3.
+*Порядок следования слоев важен, так как выход одного слоя является входом для следующего. Это обеспечивает прямой проход от входа к выходу нейросети.
+
+14.Напишите реализацию метода backward для многослойной нейросети.
+Алгоритм для метода backward в многослойной нейросети:
+1)Вычисление градиента функции потерь:
+*Получить градиент функции потерь по выходу сети (dLoss/dOutput).
+2)Обратный проход по слоям:
+*Для каждого слоя в обратном порядке (от выходного слоя к входному):
+  *Линейная часть:
+    *Вычислить градиент линейной части (если функция активации не линейная) по входам слоя: dLinear/dInput.
+    *Вычислить градиент по весам и смещениям: dLinear/dW и dLinear/db.
+  *Функция активации (если применяется):
+    *Если слой использует активацию, вычислить градиент по линейному выводу слоя: dActivation/dLinear.
+  *Передача градиента на предыдущий слой:
+    *Умножить градиент по линейному выводу на градиент линейной части по входам слоя: dActivation/dInput * dLinear/dInput.
+  *Обновление параметров:
+    *Выполнить шаг градиентного спуска для обновления весов: W = W - learning_rate * dLoss/dW.
+3)Пример использования:
+*Запустить обратный проход после завершения прямого прохода.
+*Использовать полученные градиенты для обновления параметров каждого слоя.
+
+Примечание:
+*Приведенный алгоритм предполагает использование стохастического градиентного спуска и предполагает, что все слои являются полносвязными (DenseLayer). В реальной реализации могут быть уточнения для различных типов слоев и оптимизаторов.
+
+Реализация кода:
+class NeuralNetwork:
+    def __init__(self, layers):
+        self.layers = layers
+
+    def forward(self, X):
+        # Прямой проход (уже реализован)
+        for layer in self.layers:
+            X = layer.forward(X)
+        return X
+
+    def backward(self, X, y, learning_rate):
+        # Вычисление градиента функции потерь
+        dLoss = self.loss_gradient(X, y)
+
+        # Обратный проход по слоям
+        for layer in reversed(self.layers):
+            # Линейная часть слоя
+            dLinear = layer.backward(dLoss, learning_rate)
+
+            # Если слой использует активацию
+            if isinstance(layer, DenseLayerWithActivation):
+                # Градиент активации по линейному входу слоя
+                dActivation = layer.activation_derivative()
+
+                # Умножение градиентов
+                dLoss = np.dot(dLinear, dActivation)
+
+            # Если слой без активации
+            else:
+                dLoss = dLinear
+
+    def train(self, X_train, y_train, n_iters, learning_rate):
+        for _ in range(n_iters):
+            # Сгенерировать массив индексов и сделать выборку минибатча
+            idxs = np.random.choice(len(X_train), batch_size)
+            X_batch, y_batch = X_train[idxs], y_train[idxs]
+
+            # Прямой проход
+            y_pred = self.forward(X_batch)
+
+            # Вычисление функции потерь
+            loss = self.cross_entropy_loss(y_batch, y_pred)
+
+            # Обратный проход для обновления весов
+            self.backward(X_batch, y_batch, learning_rate)
+
+    def loss_gradient(self, X, y):
+        # Градиент функции потерь по предсказаниям модели
+        return X - y
+
+    def cross_entropy_loss(self, y_true, y_pred):
+        # Вычисление Cross Entropy Loss
+        epsilon = 1e-15
+        y_pred = np.clip(y_pred, epsilon, 1 - epsilon)
+        loss = - (y_true * np.log(y_pred) + (1 - y_true) * np.log(1 - y_pred))
+        return np.mean(loss)
+
+Примечания:
+*В коде предполагается, что используется линейная активация для выходного слоя.
+*Предполагается, что выходные значения передаются через сигмоидную функцию (для задачи бинарной классификации). В общем случае, функции активации могут быть различными.
+*DenseLayerWithActivation представляет собой слой, который включает в себя как линейную часть, так и функцию активации. Реализация этого слоя зависит от вашей общей архитектуры.
+*Метод loss_gradient вычисляет градиент функции потерь. В данной реализации, предполагается, что выходной слой использует линейную активацию. Если используется другая активация, нужно учесть это в градиенте.
+*Метод cross_entropy_loss вычисляет Cross Entropy Loss.
+
+15.Напишите реализацию метода train для многослойной нейросети.
+
+Реализация кода:
+class NeuralNetwork:
+    def __init__(self, layers):
+        self.layers = layers
+
+    def forward(self, X):
+        # Прямой проход (уже реализован)
+        for layer in self.layers:
+            X = layer.forward(X)
+        return X
+
+    def backward(self, X, y, learning_rate):
+        # Вычисление градиента функции потерь
+        dLoss = self.loss_gradient(X, y)
+
+        # Обратный проход по слоям
+        for layer in reversed(self.layers):
+            # Линейная часть слоя
+            dLinear = layer.backward(dLoss, learning_rate)
+
+            # Если слой использует активацию
+            if isinstance(layer, DenseLayerWithActivation):
+                # Градиент активации по линейному входу слоя
+                dActivation = layer.activation_derivative()
+
+                # Умножение градиентов
+                dLoss = np.dot(dLinear, dActivation)
+
+            # Если слой без активации
+            else:
+                dLoss = dLinear
+
+    def train(self, X_train, y_train, n_iters, learning_rate, batch_size):
+        for _ in range(n_iters):
+            # Сгенерировать массив индексов и сделать выборку минибатча
+            idxs = np.random.choice(len(X_train), batch_size)
+            X_batch, y_batch = X_train[idxs], y_train[idxs]
+
+            # Прямой проход
+            y_pred = self.forward(X_batch)
+
+            # Вычисление функции потерь
+            loss = self.cross_entropy_loss(y_batch, y_pred)
+
+            # Обратный проход для обновления весов
+            self.backward(X_batch, y_batch, learning_rate)
+
+    def loss_gradient(self, X, y):
+        # Градиент функции потерь по предсказаниям модели
+        return X - y
+
+    def cross_entropy_loss(self, y_true, y_pred):
+        # Вычисление Cross Entropy Loss
+        epsilon = 1e-15
+        y_pred = np.clip(y_pred, epsilon, 1 - epsilon)
+        loss = - (y_true * np.log(y_pred) + (1 - y_true) * np.log(1 - y_pred))
+        return np.mean(loss)
+
+
+Примечания:
+*В этой реализации используется простой градиентный спуск с мини-батчами. В реальных проектах возможно применение более сложных методов оптимизации.
+*batch_size - размер мини-батча, который определяет, сколько образцов данных используется для каждого обновления весов.
+*Метод cross_entropy_loss вычисляет Cross Entropy Loss. При необходимости можно реализовать другие функции потерь в соответствии с поставленной задачей.
+*Важно правильно выбирать гиперпараметры, такие как learning_rate и batch_size, для эффективного обучения модели.
+
+Алгоритм метода train для многослойной нейросети:
+1)Инициализация: Создание экземпляра нейросети с заданными слоями.
+2)Цикл обучения (for _ in range(n_iters):):
+a. Генерация мини-батча: Случайным образом выбираются индексы для формирования мини-батча из обучающей выборки (idxs = np.random.choice(len(X_train), batch_size)). Мини-батч представляет собой случайное подмножество данных.
+b. Прямой проход (y_pred = self.forward(X_batch)): Проход мини-батча через нейросеть для получения предсказанных значений. Вызывается метод forward, который последовательно передает входные данные через все слои нейросети.
+c. Вычисление функции потерь (loss = self.cross_entropy_loss(y_batch, y_pred)): Рассчитывается значение функции потерь между предсказанными значениями (y_pred) и фактическими метками из мини-батча (y_batch). В данном случае используется Cross Entropy Loss.
+d. Обратный проход (self.backward(X_batch, y_batch, learning_rate)): Происходит обратный проход для коррекции весов нейросети. Градиенты вычисляются с использованием метода backward. Веса обновляются с учетом градиентов и learning rate.
+3)Завершение обучения: По завершении указанного числа итераций (n_iters), процесс обучения завершается.
+
+Пояснение кода с комментариями:
+*self.forward(X): Этот метод принимает входные данные X и проходит их через все слои нейросети с помощью их методов forward. Возвращает предсказанные значения.
+*self.backward(X, y, learning_rate): Этот метод принимает входные данные X, фактические метки y и скорость обучения (learning_rate). Он вызывает метод backward для каждого слоя нейросети, чтобы вычислить градиенты и обновить веса.
+*self.cross_entropy_loss(y_true, y_pred): Этот метод вычисляет значение функции потерь Cross Entropy Loss между фактическими метками y_true и предсказанными значениями y_pred. Используется в процессе обучения для оценки ошибки модели.
+
+16.Напишите реализацию метода evaluate для многослойной нейросети.
+Алгоритм метода evaluate для многослойной нейросети:
+1)Инициализация: Создание экземпляра нейросети с заданными слоями.
+2)Загрузка обученных весов: Загрузка весов, которые были ранее обучены методом train.
+3)Вычисление метрик: Проход тестовой выборки через нейросеть с использованием текущих весов. Получение предсказанных значений.
+4)Вычисление метрик качества: Вычисление метрик качества, таких как точность (accuracy), precision, recall, F1-score и других в зависимости от задачи классификации.
+5)Отчет о метриках: Вывод отчета с метриками оценки производительности модели.
+
+Теперь пояснение кода с комментариями:
+def evaluate(self, X_test, y_test):
+    """
+    Evaluate the performance of the trained neural network on the test set.
+    :param X_test: Test input data.
+    :param y_test: True labels for the test data.
+    :return: Metrics such as accuracy, precision, recall, F1-score, etc.
+    """
+    # Load the trained weights
+    self.load_weights('trained_weights')
+
+    # Forward pass to get predictions
+    y_pred = self.forward(X_test)
+
+    # Evaluate metrics (you may use different metrics based on your problem)
+    accuracy = calculate_accuracy(y_test, y_pred)
+    precision = calculate_precision(y_test, y_pred)
+    recall = calculate_recall(y_test, y_pred)
+    f1_score = calculate_f1_score(precision, recall)
+
+    # Display or return the evaluation results
+    print(f"Accuracy: {accuracy}")
+    print(f"Precision: {precision}")
+    print(f"Recall: {recall}")
+    print(f"F1 Score: {f1_score}")
+
+    return accuracy, precision, recall, f1_score
+
+Пояснения к коду:
+*self.load_weights('trained_weights'): Загрузка ранее сохраненных весов нейросети. Этот метод должен быть реализован в классе нейросети.
+*self.forward(X_test): Прямой проход через нейросеть для получения предсказанных значений на тестовой выборке.
+*calculate_accuracy, calculate_precision, calculate_recall, calculate_f1_score: Вспомогательные функции для вычисления различных метрик качества на основе фактических и предсказанных меток.
+*Отчет о метриках выводится в консоль или может быть возвращен в виде значений, в зависимости от требований задачи.
+
+
+17.Создайте слой Conv2D с размером ядра 5х5, 16 карт активации, высота и ширина карты активации должна быть как у исходного изображения.
+
+Реализация кода:
+import tensorflow as tf
+
+class MyConv2DLayer(tf.keras.layers.Layer):
+    def __init__(self, filters, kernel_size):
+        super(MyConv2DLayer, self).__init__()
+        self.conv2d = tf.keras.layers.Conv2D(filters=filters, kernel_size=kernel_size, padding='same')
+
+    def call(self, inputs):
+        return self.conv2d(inputs)
+
+# Создание слоя Conv2D
+conv2d_layer = MyConv2DLayer(filters=16, kernel_size=(5, 5))
+
+# Создание входных данных для теста
+input_data = tf.keras.Input(shape=(64, 64, 3))  # Пример: 64x64 изображение с 3 каналами (RGB)
+
+# Прохождение данных через слой Conv2D
+output_data = conv2d_layer(input_data)
+
+# Создание модели с входом и выходом
+model = tf.keras.Model(inputs=input_data, outputs=output_data)
+
+# Вывод информации о модели
+model.summary()
+
+
+Пояснение кода:
+*MyConv2DLayer - пользовательский слой, который наследуется от tf.keras.layers.Layer и содержит слой Conv2D внутри.
+*__init__: Инициализация слоя с заданными параметрами filters (количество карт активации) и kernel_size (размер ядра).
+*call: Метод, который определяет логику прямого прохода (forward pass) через слой.
+*input_data: Создание входных данных для теста, в данном случае, изображения размером 64x64 с 3 каналами (RGB).
+*conv2d_layer: Создание экземпляра слоя MyConv2DLayer с параметрами 16 карт активации и размером ядра 5x5.
+*output_data: Прохождение входных данных через созданный слой для получения выходных данных.
+*model: Создание модели с использованием входных и выходных данных.
+*model.summary(): Вывод информации о модели, включая информацию о слое Conv2D.
+
+18.Создайте слой Conv2DTranspose, преобразующий (1, 32, 32, 3) -> (1, 65, 65, 4)
+Реализация кода:
+import tensorflow as tf
+
+class MyConv2DTransposeLayer(tf.keras.layers.Layer):
+    def __init__(self, filters, kernel_size):
+        super(MyConv2DTransposeLayer, self).__init__()
+        self.conv2d_transpose = tf.keras.layers.Conv2DTranspose(filters=filters, kernel_size=kernel_size, padding='same')
+
+    def call(self, inputs):
+        return self.conv2d_transpose(inputs)
+
+# Создание слоя Conv2DTranspose
+conv2d_transpose_layer = MyConv2DTransposeLayer(filters=4, kernel_size=(3, 3))
+
+# Создание входных данных для теста
+input_data = tf.keras.Input(shape=(32, 32, 3))  # Пример: изображение 32x32 с 3 каналами (RGB)
+
+# Прохождение данных через слой Conv2DTranspose
+output_data = conv2d_transpose_layer(input_data)
+
+# Создание модели с входом и выходом
+model = tf.keras.Model(inputs=input_data, outputs=output_data)
+
+# Вывод информации о модели
+model.summary()
+
+
+Пояснение кода:
+*MyConv2DTransposeLayer: пользовательский слой, наследующий tf.keras.layers.Layer и содержащий слой Conv2DTranspose внутри.
+*__init__: Инициализация слоя с заданными параметрами filters (количество карт активации) и kernel_size (размер ядра).
+*call: Метод, который определяет логику прямого прохода (forward pass) через слой.
+*input_data: Создание входных данных для теста, в данном случае, изображения размером 32x32 с 3 каналами (RGB).
+*conv2d_transpose_layer: Создание экземпляра слоя MyConv2DTransposeLayer с параметрами 4 карт активации и размером ядра 3x3.
+*output_data: Прохождение входных данных через созданный слой для получения выходных данных.
+*model: Создание модели с использованием входных и выходных данных.
+*model.summary(): Вывод информации о модели, включая информацию о слое Conv2DTranspose.
+
+19.Напишите скрипт для обучения модели бинарной классификации изображений.
+Алгоритм создания скрипта для обучения модели бинарной классификации изображений:
+1)Импорт библиотек: Импорт необходимых библиотек, таких как TensorFlow и Keras.
+2)Подготовка данных: Загрузка и предварительная обработка данных, таких как изображения и метки классов.
+3)Определение архитектуры модели: Создание модели с использованием подходящей архитектуры, например, сверточной нейронной сети (Convolutional Neural Network - CNN).
+4)Компиляция модели: Выбор оптимизатора, функции потерь и метрик для компиляции модели.
+5)Обучение модели: Использование метода fit для обучения модели на подготовленных данных.
+6)Сохранение модели: Опционально, сохранение обученной модели для будущего использования.
+
+Реализация кода:
+import tensorflow as tf
+from tensorflow.keras import layers, models
+
+# Подготовка данных
+(train_images, train_labels), (test_images, test_labels) = tf.keras.datasets.cifar10.load_data()
+train_images, test_images = train_images / 255.0, test_images / 255.0  # Нормализация значений пикселей
+
+# Определение архитектуры модели (пример сверточной нейронной сети)
+model = models.Sequential([
+    layers.Conv2D(32, (3, 3), activation='relu', input_shape=(32, 32, 3)),
+    layers.MaxPooling2D((2, 2)),
+    layers.Conv2D(64, (3, 3), activation='relu'),
+    layers.MaxPooling2D((2, 2)),
+    layers.Conv2D(64, (3, 3), activation='relu'),
+    layers.Flatten(),
+    layers.Dense(64, activation='relu'),
+    layers.Dense(1, activation='sigmoid')
+])
+
+# Компиляция модели
+model.compile(optimizer='adam',
+              loss='binary_crossentropy',
+              metrics=['accuracy'])
+
+# Обучение модели
+model.fit(train_images, train_labels, epochs=10, validation_data=(test_images, test_labels))
+
+# Сохранение модели (опционально)
+model.save('binary_classification_model.h5')
+
+
+Пояснение кода:
+*Sequential: Создание последовательной модели.
+*Conv2D: Добавление слоя свертки с указанными параметрами.
+*MaxPooling2D: Добавление слоя пулинга.
+*Flatten: Добавление слоя для преобразования данных перед полносвязными слоями.
+*Dense: Добавление полносвязного слоя с указанными параметрами.
+*compile: Компиляция модели с выбранным оптимизатором, функцией потерь и метрикой.
+*fit: Обучение модели на тренировочных данных с указанным числом эпох и валидационными данными.
+*save: Сохранение модели в файл (опционально).
+
+20.Напишите скрипт для обучения рекуррентной модели бинарной классификации текстов.
+Алгоритм создания скрипта для обучения рекуррентной модели бинарной классификации текстов:
+1)Импорт библиотек: Импорт необходимых библиотек, таких как TensorFlow и Keras.
+2)Подготовка данных: Загрузка и предварительная обработка текстовых данных, таких как токенизация и векторизация.
+3)Определение архитектуры модели: Создание модели с использованием рекуррентных слоев, таких как SimpleRNN или LSTM.
+4)Компиляция модели: Выбор оптимизатора, функции потерь и метрик для компиляции модели.
+5)Обучение модели: Использование метода fit для обучения модели на подготовленных данных.
+6)Сохранение модели: Опционально, сохранение обученной модели для будущего использования.
+
+Реализация кода:
+import tensorflow as tf
+from tensorflow.keras import layers
+
+# Подготовка данных
+# Загрузка и предварительная обработка текстовых данных
+(X_train, y_train), (X_test, y_test) = load_text_data()
+
+# Токенизация и векторизация текста
+tokenizer = tf.keras.preprocessing.text.Tokenizer(num_words=1000)
+tokenizer.fit_on_texts(X_train)
+X_train_sequences = tokenizer.texts_to_sequences(X_train)
+X_test_sequences = tokenizer.texts_to_sequences(X_test)
+
+X_train_padded = tf.keras.preprocessing.sequence.pad_sequences(X_train_sequences)
+X_test_padded = tf.keras.preprocessing.sequence.pad_sequences(X_test_sequences)
+
+# Определение архитектуры модели
+model = tf.keras.models.Sequential([
+    layers.Embedding(input_dim=1000, output_dim=16, input_length=X_train_padded.shape[1]),
+    layers.SimpleRNN(units=16),
+    layers.Dense(1, activation='sigmoid')
+])
+
+# Компиляция модели
+model.compile(optimizer='adam',
+              loss='binary_crossentropy',
+              metrics=['accuracy'])
+
+# Обучение модели
+model.fit(X_train_padded, y_train, epochs=5, validation_data=(X_test_padded, y_test))
+
+# Сохранение модели (опционально)
+model.save('text_binary_classification_model.h5')
+
+
+Пояснение кода:
+*Sequential: Создание последовательной модели.
+*Embedding: Добавление слоя эмбеддинга для векторизации текста.
+*SimpleRNN: Добавление слоя рекуррентной нейронной сети.
+*Dense: Добавление полносвязного слоя для бинарной классификации.
+*compile: Компиляция модели с выбранным оптимизатором, функцией потерь и метрикой.
+*fit: Обучение модели на тренировочных данных с указанным числом эпох и валидационными данными.
+*save: Сохранение модели в файл (опционально).
+
+21.Напишите скрипт для дообучения модели bert.
+Алгоритм создания скрипта для дообучения модели BERT:
+1)Импорт библиотек: Импорт необходимых библиотек, таких как transformers для работы с моделями BERT и torch для обучения.
+2)Загрузка предварительно обученной модели BERT: Загрузка предварительно обученной модели BERT с использованием BertForSequenceClassification из библиотеки transformers.
+3)Загрузка данных для дообучения: Загрузка данных, которые будут использоваться для дообучения модели.
+4)Подготовка данных: Токенизация и векторизация текста, аналогично тому, как это делалось при обучении модели BERT.
+5)Определение оптимизатора и функции потерь: Выбор оптимизатора и функции потерь для дообучения.
+6)Обучение модели: Использование метода train для дообучения модели на подготовленных данных.
+7)Сохранение дообученной модели: Опционально, сохранение дообученной модели для дальнейшего использования.
+
+Реализация кода:
+from transformers import BertTokenizer, BertForSequenceClassification, AdamW
+import torch
+
+# Загрузка предварительно обученной модели BERT
+model = BertForSequenceClassification.from_pretrained("bert-base-uncased", num_labels=2)
+tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
+
+# Загрузка данных для дообучения
+train_texts, train_labels = load_training_data()
+
+# Подготовка данных
+tokenized_input = tokenizer(train_texts, return_tensors='pt', truncation=True, padding=True)
+labels = torch.tensor(train_labels)
+
+# Определение оптимизатора и функции потерь
+optimizer = AdamW(model.parameters(), lr=5e-5)
+loss_fn = torch.nn.CrossEntropyLoss()
+
+# Обучение модели
+for epoch in range(3):
+    outputs = model(**tokenized_input, labels=labels)
+    loss = outputs.loss
+    loss.backward()
+    optimizer.step()
+    optimizer.zero_grad()
+
+# Сохранение дообученной модели (опционально)
+model.save_pretrained("fine_tuned_bert_model")
+
+
+Пояснение кода:
+*BertForSequenceClassification: Загрузка предварительно обученной модели BERT для задачи классификации текста.
+*BertTokenizer: Создание токенизатора для предобработки текстовых данных.
+*AdamW: Выбор оптимизатора для обучения модели.
+*CrossEntropyLoss: Выбор функции потерь для задачи классификации.
+*train_texts и train_labels: Загрузка данных для дообучения модели.
+*tokenizer: Токенизация текста для использования в модели.
+*tokenized_input и labels: Подготовка данных для обучения модели.
+*for epoch in range(3):: Цикл по эпохам для дообучения модели.
+*outputs = model(**tokenized_input, labels=labels): Получение предсказаний модели и вычисление функции потерь.
+*loss.backward(): Обратное распространение ошибки.
+*optimizer.step(): Обновление параметров модели.
+*optimizer.zero_grad(): Обнуление градиентов перед следующей итерацией.
+*model.save_pretrained("fine_tuned_bert_model"): Сохранение дообученной модели (опционально).
