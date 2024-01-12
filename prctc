@@ -313,12 +313,10 @@ def get_random_batch(X, batch_size):
   *Вычислить функцию потерь и градиенты.
   *Обновить веса сети с использованием оптимизатора.
 *После завершения обучения оценить точность на обучающей и тестовой выборке.
-
 Код с комментариями:
 def train_two_layer_net(x_train, y_train, n_iters=10000, learning_rate=1e-3, reg=1e-1, batch_size=64, verbose=True):
     """
     Общий пайплайн обучения двухслойной сети.
-
     Parameters:
     - x_train: numpy array, обучающая выборка.
     - y_train: numpy array, метки классов для обучающей выборки.
@@ -327,52 +325,38 @@ def train_two_layer_net(x_train, y_train, n_iters=10000, learning_rate=1e-3, reg
     - reg: float, коэффициент регуляризации.
     - batch_size: int, размер минибатча.
     - verbose: bool, вывод прогресса обучения.
-
     Returns:
     - cls: экземпляр обученной двухслойной сети.
     - loss_history: список значений функции потерь на каждой итерации.
     """
     # Создание экземпляра двухслойной сети
     cls = TwoLayerNet()
-
     # Задание гиперпараметров
     cls.learning_rate = learning_rate
     cls.reg = reg
-
     # Инициализация оптимизатора (например, Momentum)
     cls.optimizer = Momentum()
-
     # Подготовка данных (например, предобработка)
     (x_train, y_train), _ = get_preprocessed_data()
-
     # Итерации градиентного спуска
     loss_history = []
     for it in range(n_iters):
         # Получение случайного минибатча
         idxs = np.random.choice(len(x_train), batch_size)
         x_batch, y_batch = x_train[idxs], y_train[idxs]
-
         # Прямой проход (forward pass) через сеть
         z = cls.forward(x_batch)
-
         # Вычисление функции потерь и градиентов
         cls.compute_loss_and_gradient(z, y_batch)
-
         # Обратный проход (backward pass)
         cls.backward()
-
         # Обновление весов с использованием оптимизатора
         for name, param in cls.params().items():
             cls.optimizer.step(param.value, param.grad, learning_rate)
-
         loss_history.append(cls.loss)
-
         if it % 100 == 0 and verbose:
             print(f'iteration {it} / {n_iters}: loss {cls.loss:.3f} ')
-
     return cls, loss_history
-
-
 Объяснение кода:
 *Функция train_two_layer_net реализует общий пайплайн обучения двухслойной сети.
 *Создается экземпляр TwoLayerNet и задаются гиперпараметры.
@@ -387,19 +371,15 @@ def train_two_layer_net(x_train, y_train, n_iters=10000, learning_rate=1e-3, reg
   *Если элемент положительный, оставить его без изменений.
   *Если элемент отрицательный, заменить его нулем.
 *Результат работы ReLU - новый массив с примененными функцией ReLU значениями.
-
 Код с комментариями:
 class ReLULayer:
     def __init__(self):
         self.mask = None
-
     def forward(self, X: np.array) -> np.array:
         """
         Реализация прямого прохода (forward pass) через слой ReLU.
-
         Parameters:
         - X: numpy array, входной массив.
-
         Returns:
         - result: numpy array, результат работы ReLU.
         """
@@ -408,30 +388,24 @@ class ReLULayer:
         # Применяем ReLU - оставляем положительные значения, а отрицательные заменяем на 0
         result = X * self.mask
         return result
-
     def backward(self, d_out: np.array) -> np.array:
         """
         Реализация обратного прохода (backward pass) через слой ReLU.
-
         Parameters:
         - d_out: numpy array, градиент функции потерь по выходу слоя.
-
         Returns:
         - d_result: numpy array, градиент функции потерь по входу слоя.
         """
         # Производная ReLU - 1 для положительных элементов, 0 для отрицательных
         d_result = d_out * self.mask
         return d_result
-
     def params(self) -> dict:
         """
         Возвращает параметры слоя ReLU (в данном случае слой ReLU не имеет параметров).
-
         Returns:
         - params: словарь, пустой для слоя ReLU.
         """
         return {}
-
 Объяснение кода:
 *ReLU (Rectified Linear Unit) - это нелинейная функция активации, которая возвращает 0 для всех отрицательных входов и оставляет положительные значения без изменений.
 *ReLULayer - класс, реализующий слой ReLU. Имеет методы forward и backward для прямого и обратного прохода соответственно, а также метод params, который возвращает пустой словарь, так как слой ReLU не имеет обучаемых параметров.
@@ -445,13 +419,11 @@ class ReLULayer:
 *Проход вперед (forward): умножение входных данных на матрицу весов, добавление вектора смещений, передача результата через нелинейную функцию активации (в данном случае ReLU).
 *Обратный проход (backward): вычисление градиента функции потерь по входам слоя, обновление градиентов по параметрам (весам и смещениям).
 *Параметры слоя (params): возвращает словарь с параметрами слоя (веса W и смещения B).
-
 Код с комментариями:
 class DenseLayer:
     def __init__(self, n_input, n_output):
         """
         Инициализация слоя Dense.
-
         Parameters:
         - n_input: int, количество входных нейронов.
         - n_output: int, количество выходных нейронов.
@@ -460,14 +432,11 @@ class DenseLayer:
         self.W = Param(0.001 * np.random.randn(n_input, n_output))
         self.B = Param(0.001 * np.random.randn(1, n_output))
         self.X = None
-
     def forward(self, X):
         """
         Прямой проход через слой Dense.
-
         Parameters:
         - X: numpy array, входной массив.
-
         Returns:
         - result: numpy array, результат работы слоя.
         """
@@ -475,14 +444,11 @@ class DenseLayer:
         # Вычисляем результат слоя - умножение на веса, добавление смещений и применение ReLU
         result = np.maximum(0, X.dot(self.W.value) + self.B.value)
         return result
-
     def backward(self, d_out):
         """
         Обратный проход через слой Dense.
-
         Parameters:
         - d_out: numpy array, градиент функции потерь по выходу слоя.
-
         Returns:
         - d_result: numpy array, градиент функции потерь по входу слоя.
         """
@@ -495,17 +461,13 @@ class DenseLayer:
         self.W.grad += dW
         self.B.grad += dB
         return d_result
-
     def params(self):
         """
         Возвращает параметры слоя Dense.
-
         Returns:
         - params: словарь, содержащий параметры слоя (веса W и смещения B).
         """
         return {'W': self.W, 'B': self.B}
-
-
 Объяснение кода:
 *DenseLayer - класс, представляющий полносвязный слой (Dense Layer) в нейронной сети.
 *В конструкторе инициализируются параметры слоя: матрица весов W и вектор смещений B. Инициализация происходит с использованием небольшого случайного шума.
@@ -519,28 +481,23 @@ class DenseLayer:
 *Во время прямого прохода (forward): для каждого нейрона генерируется случайное число из равномерного распределения, и если оно больше p, то нейрон "выключается" (его выход умножается на ноль).
 *Обратный проход (backward) просто умножает градиент на маску дропаута.
 *Параметры слоя (params): возвращает пустой словарь, так как Dropout не имеет обучаемых параметров.
-
 Код с комментариями:
 class DropoutLayer(Layer):
     def __init__(self, p=0.5):
         """
         Инициализация слоя Dropout.
-
         Parameters:
         - p: float, вероятность выключения нейрона (дропаут).
         """
         self.p = p
         self.mask = None  # Маска дропаута (будет использоваться при прямом и обратном проходе)
         self.scale = None  # Масштабирование выхода слоя при прямом проходе
-
     def forward(self, x: np.ndarray, train: bool = True) -> np.ndarray:
         """
         Прямой проход через слой Dropout.
-
         Parameters:
         - x: numpy array, входной массив.
         - train: bool, флаг обучения (если False, то дропаут не применяется).
-
         Returns:
         - result: numpy array, результат работы слоя.
         """
@@ -554,30 +511,24 @@ class DropoutLayer(Layer):
             # В режиме тестирования (без дропаута)
             result = x
         return result
-
     def backward(self, grad_input: np.ndarray) -> np.ndarray:
         """
         Обратный проход через слой Dropout.
-
         Parameters:
         - grad_input: numpy array, градиент функции потерь по выходу слоя.
-
         Returns:
         - grad_output: numpy array, градиент функции потерь по входу слоя.
         """
         # Умножение градиента на маску дропаута и масштабирование
         grad_output = grad_input * self.mask * self.scale
         return grad_output
-
     def params(self) -> dict:
         """
         Возвращает пустой словарь, так как Dropout не имеет обучаемых параметров.
-
         Returns:
         - params: dict, пустой словарь.
         """
         return {}
-
 Объяснение кода:
 *DropoutLayer - класс, представляющий слой Dropout в нейронной сети.
 *В конструкторе инициализируются вероятность p, маска дропаута и масштабирование выхода.
@@ -589,25 +540,20 @@ class DropoutLayer(Layer):
 Алгоритм и код для класса OptimizerSGD:
 *OptimizerSGD - класс, представляющий оптимизатор стохастического градиентного спуска.
 *В каждом шаге обновляет веса по формуле: w -= learning_rate * gradient.
-
 Код с комментариями:
 class OptimizerSGD(Optimizer):
     def step(self, w, d_w, learning_rate):
         """
         Один шаг оптимизатора стохастического градиентного спуска.
-
         Parameters:
         - w: numpy array, текущие веса.
         - d_w: numpy array, градиент функции потерь по весам.
         - learning_rate: float, коэффициент скорости обучения.
-
         Returns:
         - None: Обновляет веса входного массива.
         """
         # Обновление весов по формуле градиентного спуска
         w -= learning_rate * d_w
-
-
 Объяснение кода:
 *OptimizerSGD - класс, наследующийся от абстрактного класса Optimizer.
 *Метод step выполняет один шаг оптимизации стохастического градиентного спуска.
@@ -620,45 +566,35 @@ class OptimizerSGD(Optimizer):
 *OptimizerMomentum - класс, представляющий оптимизатор метода Momentum.
 *Вводит переменную velocity, которая представляет собой скользящее среднее градиента.
 *В каждом шаге обновляет веса по формуле: velocity = rho * velocity + d_w, w -= learning_rate * velocity.
-
 Код с комментариями:
 class OptimizerMomentum(Optimizer):
     def __init__(self, rho=0.9):
         """
         Инициализация оптимизатора метода Momentum.
-
         Parameters:
         - rho: float, коэффициент затухания для скользящего среднего градиента.
         """
         self.rho = rho
         self.velocity = None
-
     def step(self, w, d_w, learning_rate):
         """
         Один шаг оптимизатора метода Momentum.
-
         Parameters:
         - w: numpy array, текущие веса.
         - d_w: numpy array, градиент функции потерь по весам.
         - learning_rate: float, коэффициент скорости обучения.
-
         Returns:
         - None: Обновляет веса входного массива.
         """
         # Инициализация переменной velocity при первом вызове
         if self.velocity is None:
             self.velocity = np.zeros_like(d_w)
-
         # Обновление скользящего среднего градиента
         new_velocity = self.rho * self.velocity + d_w
-
         # Обновление весов по формуле Momentum
         w -= learning_rate * new_velocity
-
         # Обновление значения переменной velocity
         self.velocity = new_velocity
-
-
 Объяснение кода:
 *OptimizerMomentum - класс, наследующийся от абстрактного класса Optimizer.
 *Переменная velocity используется для хранения скользящего среднего градиента.
@@ -668,21 +604,17 @@ class OptimizerMomentum(Optimizer):
 13.Напишите реализацию метода forward для многослойной нейросети.
 Реализация кода:
 import tensorflow as tf
-
 class DenseLayer:
     def __init__(self, units, activation=None):
         self.units = units
         self.activation = activation
         self.weights = None
         self.biases = None
-
     def initialize_weights(self, input_size):
         """
         Инициализация весов слоя.
-
         Аргументы:
         - input_size: Размер входных данных.
-
         Возвращает:
         - None
         """
@@ -691,14 +623,11 @@ class DenseLayer:
         self.weights = tf.Variable(tf.random.normal(shape=(input_size, self.units), stddev=stddev),
                                    name='weights', trainable=True)
         self.biases = tf.Variable(tf.zeros(shape=(self.units,), dtype=tf.float32), name='biases', trainable=True)
-
     def forward(self, x):
         """
         Прямой проход через слой.
-
         Аргументы:
         - x: Входные данные.
-
         Возвращает:
         - output: Результат прямого прохода.
         """
@@ -706,36 +635,18 @@ class DenseLayer:
         if self.weights is None:
             input_size = x.shape[-1]
             self.initialize_weights(input_size)
-
         # Линейная часть: y = x * W + b
         linear_output = tf.matmul(x, self.weights) + self.biases
-
         # Применение функции активации, если она задана
         if self.activation is not None:
             output = self.activation(linear_output)
         else:
             output = linear_output
-
         return output
-
 Пояснение кода:
 *DenseLayer: Класс, представляющий полносвязный слой нейросети.
 *initialize_weights: Метод для инициализации весов слоя. Используется нормальное распределение для их начальной установки.
 *forward: Метод для выполнения прямого прохода через слой. Производится линейное преобразование (y = x * W + b), а затем применяется функция активации, если она задана.
-
-Пример использования:
-# Создание объекта слоя
-dense_layer = DenseLayer(units=128, activation=tf.nn.relu)
-
-# Пример входных данных
-input_data = tf.random.normal((32, 784))  # Пример для батча размером 32
-
-# Прямой проход через слой
-output_data = dense_layer.forward(input_data)
-
-# Вывод результата
-print("Результат прямого прохода через слой:", output_data)
-
 Алгоритм для метода forward в многослойной нейросети:
 1) Инициализация слоя:
 *Создать класс DenseLayer с атрибутами units (количество нейронов) и activation (функция активации).
@@ -749,10 +660,6 @@ print("Результат прямого прохода через слой:", o
 *Создать объект DenseLayer с желаемыми параметрами (например, units=128 и activation=tf.nn.relu).
 *Передать входные данные (input_data) через метод forward слоя.
 *Полученный вывод (output_data) используется для дальнейших вычислений в нейросети.
-
-Примечание:
-*Приведенный алгоритм охватывает только один слой. В многослойной нейросети для каждого слоя нужно повторить шаги 1-3.
-*Порядок следования слоев важен, так как выход одного слоя является входом для следующего. Это обеспечивает прямой проход от входа к выходу нейросети.
 
 14.Напишите реализацию метода backward для многослойной нейросети.
 Алгоритм для метода backward в многослойной нейросети:
@@ -769,71 +676,51 @@ print("Результат прямого прохода через слой:", o
     *Умножить градиент по линейному выводу на градиент линейной части по входам слоя: dActivation/dInput * dLinear/dInput.
   *Обновление параметров:
     *Выполнить шаг градиентного спуска для обновления весов: W = W - learning_rate * dLoss/dW.
-3)Пример использования:
-*Запустить обратный проход после завершения прямого прохода.
-*Использовать полученные градиенты для обновления параметров каждого слоя.
-
-Примечание:
-*Приведенный алгоритм предполагает использование стохастического градиентного спуска и предполагает, что все слои являются полносвязными (DenseLayer). В реальной реализации могут быть уточнения для различных типов слоев и оптимизаторов.
-
 Реализация кода:
 class NeuralNetwork:
     def __init__(self, layers):
         self.layers = layers
-
     def forward(self, X):
         # Прямой проход (уже реализован)
         for layer in self.layers:
             X = layer.forward(X)
         return X
-
     def backward(self, X, y, learning_rate):
         # Вычисление градиента функции потерь
         dLoss = self.loss_gradient(X, y)
-
         # Обратный проход по слоям
         for layer in reversed(self.layers):
             # Линейная часть слоя
             dLinear = layer.backward(dLoss, learning_rate)
-
             # Если слой использует активацию
             if isinstance(layer, DenseLayerWithActivation):
                 # Градиент активации по линейному входу слоя
                 dActivation = layer.activation_derivative()
-
                 # Умножение градиентов
                 dLoss = np.dot(dLinear, dActivation)
-
             # Если слой без активации
             else:
                 dLoss = dLinear
-
     def train(self, X_train, y_train, n_iters, learning_rate):
         for _ in range(n_iters):
             # Сгенерировать массив индексов и сделать выборку минибатча
             idxs = np.random.choice(len(X_train), batch_size)
             X_batch, y_batch = X_train[idxs], y_train[idxs]
-
             # Прямой проход
             y_pred = self.forward(X_batch)
-
             # Вычисление функции потерь
             loss = self.cross_entropy_loss(y_batch, y_pred)
-
             # Обратный проход для обновления весов
             self.backward(X_batch, y_batch, learning_rate)
-
     def loss_gradient(self, X, y):
         # Градиент функции потерь по предсказаниям модели
         return X - y
-
     def cross_entropy_loss(self, y_true, y_pred):
         # Вычисление Cross Entropy Loss
         epsilon = 1e-15
         y_pred = np.clip(y_pred, epsilon, 1 - epsilon)
         loss = - (y_true * np.log(y_pred) + (1 - y_true) * np.log(1 - y_pred))
         return np.mean(loss)
-
 Примечания:
 *В коде предполагается, что используется линейная активация для выходного слоя.
 *Предполагается, что выходные значения передаются через сигмоидную функцию (для задачи бинарной классификации). В общем случае, функции активации могут быть различными.
